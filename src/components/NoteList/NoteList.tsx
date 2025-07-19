@@ -1,55 +1,38 @@
-import { useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { deleteNote, fetchNotes } from "../../services/noteService";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import type { Note } from "../../types/note";
+import { deleteNote } from "../../services/noteService";
 import css from "./NoteList.module.css";
 
 interface NoteListProps {
-  search: string;
-  page: number;
-  setTotalPages: (total: number) => void;
+  notes: Note[];
 }
 
-export default function NoteList({
-  search,
-  page,
-  setTotalPages,
-}: NoteListProps) {
+export default function NoteList({ notes }: NoteListProps) {
   const queryClient = useQueryClient();
 
-  const {
-    data = { results: [], totalPages: 1 },
-    isLoading,
-    isError,
-  } = useQuery({
-    queryKey: ["notes", search, page],
-    queryFn: () => fetchNotes(search, page),
-    keepPreviousData: true,
-  });
-
-  const { mutate } = useMutation({
+  const mutation = useMutation({
     mutationFn: deleteNote,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notes"] });
     },
   });
 
-  useEffect(() => {
-    setTotalPages(data.totalPages);
-  }, [data.totalPages, setTotalPages]);
-
-  if (isLoading) return <p>Loading...</p>;
-  if (isError) return <p>Error loading notes</p>;
+  const handleDelete = (id: string) => {
+    mutation.mutate(id);
+  };
 
   return (
     <ul className={css.list}>
-      {data.results.map((note: Note) => (
+      {notes.map((note) => (
         <li key={note.id} className={css.listItem}>
           <h2 className={css.title}>{note.title}</h2>
           <p className={css.content}>{note.content}</p>
           <div className={css.footer}>
             <span className={css.tag}>{note.tag}</span>
-            <button className={css.button} onClick={() => mutate(note.id)}>
+            <button
+              className={css.button}
+              onClick={() => handleDelete(note.id)}
+            >
               Delete
             </button>
           </div>
