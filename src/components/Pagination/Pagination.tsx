@@ -18,6 +18,7 @@ export default function Pagination({
       onPageChange={({ selected }) => onPageChange(selected + 1)}
       containerClassName={css.pagination}
       activeClassName={css.active}
+      pageClassName={css.page}
       previousClassName={css.prev}
       nextClassName={css.next}
       disabledClassName={css.disabled}

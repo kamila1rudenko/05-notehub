@@ -10,12 +10,8 @@ const axiosInstance = axios.create({
 });
 
 export interface FetchNotesResponse {
-  data: Note[];
-  meta: {
-    total: number;
-    page: number;
-    perPage: number;
-  };
+  notes: Note[];
+  totalPages: number;
 }
 
 export interface CreateNotePayload {
@@ -26,21 +22,21 @@ export interface CreateNotePayload {
 
 export const fetchNotes = async (
   page: number = 1,
-  perPage: number = 10,
-  search?: string,
-  tag?: NoteTag,
-  sortBy: string = "created"
+  perPage: number = 12,
+  search: string = ""
 ): Promise<FetchNotesResponse> => {
-  const params: Record<string, any> = { page, perPage, sortBy };
+  const params: Record<string, string | number> = {
+    page,
+    perPage,
+  };
 
-  if (search) params.search = search;
-  if (tag) params.tag = tag;
+  if (search.trim() !== "") {
+    params.search = search.trim();
+  }
 
   const response: AxiosResponse<FetchNotesResponse> = await axiosInstance.get(
-    "/notes",
-    {
-      params,
-    }
+    "notes",
+    { params }
   );
 
   return response.data;
@@ -55,6 +51,8 @@ export const createNote = async (note: CreateNotePayload): Promise<Note> => {
 };
 
 export const deleteNote = async (id: string): Promise<Note> => {
-  const response: AxiosResponse<Note> = await axiosInstance.delete(`/${id}`);
+  const response: AxiosResponse<Note> = await axiosInstance.delete(
+    `/notes/${id}`
+  );
   return response.data;
 };

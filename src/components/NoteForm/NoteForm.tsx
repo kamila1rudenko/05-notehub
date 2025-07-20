@@ -1,7 +1,12 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Formik, Form, Field, ErrorMessage } from "formik";
+import {
+  Formik,
+  Form,
+  Field,
+  ErrorMessage as FormikErrorMessage,
+} from "formik";
 import * as Yup from "yup";
 import type { NoteTag } from "../../types/note";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createNote } from "../../services/noteService";
 import css from "./NoteForm.module.css";
 
@@ -10,11 +15,8 @@ interface NoteFormProps {
 }
 
 const validationSchema = Yup.object({
-  title: Yup.string()
-    .min(3, "Minimum 3 characters")
-    .max(50)
-    .required("Required"),
-  content: Yup.string().max(500).required("Required"),
+  title: Yup.string().min(3).max(50).required("Required"),
+  content: Yup.string().max(500),
   tag: Yup.mixed<NoteTag>()
     .oneOf(["Todo", "Work", "Personal", "Meeting", "Shopping"])
     .required("Required"),
@@ -22,7 +24,6 @@ const validationSchema = Yup.object({
 
 export default function NoteForm({ onSubmit }: NoteFormProps) {
   const queryClient = useQueryClient();
-
   const mutation = useMutation({
     mutationFn: createNote,
     onSuccess: () => {
@@ -42,7 +43,11 @@ export default function NoteForm({ onSubmit }: NoteFormProps) {
           <div className={css.formGroup}>
             <label htmlFor="title">Title</label>
             <Field type="text" name="title" id="title" className={css.input} />
-            <ErrorMessage name="title" component="span" className={css.error} />
+            <FormikErrorMessage
+              name="title"
+              component="span"
+              className={css.error}
+            />
           </div>
 
           <div className={css.formGroup}>
@@ -54,7 +59,7 @@ export default function NoteForm({ onSubmit }: NoteFormProps) {
               rows={8}
               className={css.textarea}
             />
-            <ErrorMessage
+            <FormikErrorMessage
               name="content"
               component="span"
               className={css.error}
@@ -70,10 +75,21 @@ export default function NoteForm({ onSubmit }: NoteFormProps) {
               <option value="Meeting">Meeting</option>
               <option value="Shopping">Shopping</option>
             </Field>
-            <ErrorMessage name="tag" component="span" className={css.error} />
+            <FormikErrorMessage
+              name="tag"
+              component="span"
+              className={css.error}
+            />
           </div>
 
           <div className={css.actions}>
+            <button
+              type="button"
+              className={css.cancelButton}
+              onClick={onSubmit}
+            >
+              Cancel
+            </button>
             <button
               type="submit"
               className={css.submitButton}
