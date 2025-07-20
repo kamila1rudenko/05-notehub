@@ -17,6 +17,7 @@ export default function SearchBox({ value, onChange }: SearchBoxProps) {
       value={value}
       onChange={handleChange}
       className={css.input}
+      aria-label="Search notes"
     />
   );
 }

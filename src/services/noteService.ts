@@ -25,17 +25,14 @@ export const fetchNotes = async (
   perPage: number = 12,
   search: string = ""
 ): Promise<FetchNotesResponse> => {
-  const params: Record<string, string | number> = {
-    page,
-    perPage,
-  };
+  const params: Record<string, string | number> = { page, perPage };
 
   if (search.trim() !== "") {
     params.search = search.trim();
   }
 
   const response: AxiosResponse<FetchNotesResponse> = await axiosInstance.get(
-    "notes",
+    "/notes",
     { params }
   );
 

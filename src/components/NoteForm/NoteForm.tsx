@@ -4,39 +4,65 @@ import {
   Field,
   ErrorMessage as FormikErrorMessage,
 } from "formik";
+import type { FormikHelpers } from "formik";
 import * as Yup from "yup";
-import type { NoteTag } from "../../types/note";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { createNote } from "../../services/noteService";
+import type { CreateNotePayload, NoteTag, Note } from "../../types/note";
 import css from "./NoteForm.module.css";
 
+interface NoteFormValues {
+  title: string;
+  content: string;
+  tag: NoteTag;
+}
+
 interface NoteFormProps {
-  onSubmit: () => void;
+  onSuccess: () => void;
 }
 
 const validationSchema = Yup.object({
-  title: Yup.string().min(3).max(50).required("Required"),
-  content: Yup.string().max(500),
+  title: Yup.string()
+    .min(3, "Title must be at least 3 characters")
+    .max(50, "Title must be at most 50 characters")
+    .required("Title is required"),
+  content: Yup.string().max(500, "Content must be at most 500 characters"),
   tag: Yup.mixed<NoteTag>()
     .oneOf(["Todo", "Work", "Personal", "Meeting", "Shopping"])
-    .required("Required"),
+    .required("Tag is required"),
 });
 
-export default function NoteForm({ onSubmit }: NoteFormProps) {
+export default function NoteForm({ onSuccess }: NoteFormProps) {
   const queryClient = useQueryClient();
-  const mutation = useMutation({
+
+  const mutation = useMutation<Note, Error, CreateNotePayload>({
     mutationFn: createNote,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["notes"] });
-      onSubmit();
     },
   });
 
+  const initialValues: NoteFormValues = {
+    title: "",
+    content: "",
+    tag: "Todo",
+  };
+
   return (
     <Formik
-      initialValues={{ title: "", content: "", tag: "Todo" as NoteTag }}
+      initialValues={initialValues}
       validationSchema={validationSchema}
-      onSubmit={(values) => mutation.mutate(values)}
+      onSubmit={(
+        values: NoteFormValues,
+        helpers: FormikHelpers<NoteFormValues>
+      ) => {
+        mutation.mutate(values, {
+          onSuccess: () => {
+            helpers.resetForm();
+            onSuccess(); // Закрываем модалку и сбрасываем на первую страницу
+          },
+        });
+      }}
     >
       {({ isSubmitting }) => (
         <Form className={css.form}>
@@ -83,13 +109,6 @@ export default function NoteForm({ onSubmit }: NoteFormProps) {
           </div>
 
           <div className={css.actions}>
-            <button
-              type="button"
-              className={css.cancelButton}
-              onClick={onSubmit}
-            >
-              Cancel
-            </button>
             <button
               type="submit"
               className={css.submitButton}
