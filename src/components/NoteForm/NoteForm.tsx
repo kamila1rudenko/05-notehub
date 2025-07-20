@@ -59,7 +59,7 @@ export default function NoteForm({ onSuccess }: NoteFormProps) {
         mutation.mutate(values, {
           onSuccess: () => {
             helpers.resetForm();
-            onSuccess(); // Закрываем модалку и сбрасываем на первую страницу
+            onSuccess();
           },
         });
       }}
