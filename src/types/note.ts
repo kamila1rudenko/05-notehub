@@ -8,14 +8,3 @@ export interface Note {
   createdAt: string;
   updatedAt: string;
 }
-
-export interface CreateNotePayload {
-  title: string;
-  content: string;
-  tag: NoteTag;
-}
-
-export interface FetchNotesResponse {
-  notes: Note[];
-  totalPages: number;
-}

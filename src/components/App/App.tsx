@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useDebouncedValue } from "@mantine/hooks";
 import css from "./App.module.css";
@@ -11,35 +11,53 @@ import SearchBox from "../SearchBox/SearchBox";
 import Loading from "../Loading/Loading";
 import ErrorMessage from "../ErrorMessage/ErrorMessage";
 
-import { fetchNotes } from "../../services/noteService";
-import type { FetchNotesResponse } from "../../services/noteService";
+import {
+  fetchNotes,
+  type FetchNotesResponse,
+} from "../../services/noteService";
 
 export default function App() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [debouncedSearch] = useDebouncedValue(search, 300);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const queryClient = useQueryClient();
 
-  const { data, isLoading, error } = useQuery<FetchNotesResponse, Error>({
-    queryKey: ["notes", page, debouncedSearch],
+  const handleSearchChange = (value: string) => {
+    setSearch(value);
+    setPage(1);
+  };
+
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch]);
+
+  const queryOptions = {
+    queryKey: ["notes", page, debouncedSearch] as const,
     queryFn: () => fetchNotes(page, 12, debouncedSearch),
     staleTime: 3000,
-  });
+    keepPreviousData: true,
+    placeholderData: (): FetchNotesResponse | undefined =>
+      queryClient.getQueryData(["notes", page, debouncedSearch]) as
+        | FetchNotesResponse
+        | undefined,
+  };
+
+  const { data, isLoading, isFetching, error } = useQuery(queryOptions);
 
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 
   const handleNoteCreated = () => {
+    setPage(1);
     closeModal();
     queryClient.invalidateQueries({ queryKey: ["notes"] });
-    setPage(1);
   };
 
   return (
     <div className={css.app}>
       <header className={css.toolbar}>
-        <SearchBox value={search} onChange={setSearch} />
+        <SearchBox value={search} onChange={handleSearchChange} />
         {data?.totalPages && data.totalPages > 1 && (
           <Pagination
             pageCount={data.totalPages}
@@ -52,7 +70,7 @@ export default function App() {
         </button>
       </header>
 
-      {isLoading && <Loading />}
+      {(isLoading || isFetching) && <Loading />}
       {error && <ErrorMessage message={error.message} />}
 
       {!isLoading && !error && (

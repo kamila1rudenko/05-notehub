@@ -7,8 +7,8 @@ import {
 import type { FormikHelpers } from "formik";
 import * as Yup from "yup";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createNote } from "../../services/noteService";
-import type { CreateNotePayload, NoteTag, Note } from "../../types/note";
+import { createNote, type CreateNotePayload } from "../../services/noteService";
+import type { NoteTag, Note } from "../../types/note";
 import css from "./NoteForm.module.css";
 
 interface NoteFormValues {
@@ -115,6 +115,13 @@ export default function NoteForm({ onSuccess }: NoteFormProps) {
               disabled={isSubmitting}
             >
               Create note
+            </button>
+            <button
+              type="button"
+              className={css.cancelButton}
+              onClick={onSuccess}
+            >
+              Cancel
             </button>
           </div>
         </Form>
