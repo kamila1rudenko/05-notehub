@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useDebouncedValue } from "@mantine/hooks";
 import css from "./App.module.css";
 
 import NoteList from "../NoteList/NoteList";
@@ -15,11 +14,12 @@ import {
   fetchNotes,
   type FetchNotesResponse,
 } from "../../services/noteService";
+import { useDebounce } from "use-debounce";
 
 export default function App() {
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState("");
-  const [debouncedSearch] = useDebouncedValue(search, 300);
+  const [debouncedSearch] = useDebounce(search, 300);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const queryClient = useQueryClient();
 
